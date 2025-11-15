@@ -55,7 +55,7 @@ train:
 	@echo "✅ Обучение завершено. Веса: $(CHECKPOINTS_DIR)"
 
 ## Очистить производные данные (сохранить исходные)
-clean:
+clean_splits:
 	@echo "🧹 Очистка..."
 
 	@for dir in data/*/; do \
@@ -65,11 +65,19 @@ clean:
 		fi; \
 	done
 
+	@echo "✅ Временные файлы удалены"
+
+# Очистить чекпоинты
+clean_checkpoints:
 	@if [ -d $(CHECKPOINTS_DIR) ]; then \
 		echo "Удаление $(CHECKPOINTS_DIR)..."; \
 		rm -rf $(CHECKPOINTS_DIR); \
 	fi
 
+	@echo "✅ Временные файлы удалены"
+
+# Очистить логи
+clean_logs:
 	@if [ -d $(LOGS_GIR) ]; then \
 		echo "Удаление $(LOGS_GIR)..."; \
 		rm -rf $(LOGS_GIR); \

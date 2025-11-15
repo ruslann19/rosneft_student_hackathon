@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 
 def compute_iou(pred_mask, true_mask, eps=1e-6):
@@ -33,6 +34,7 @@ def compute_class_iou(pred_mask, true_mask, class_id, eps=1e-6):
     return intersection / (union + eps)
 
 
+@torch.no_grad()
 def compute_miou(pred_mask, true_mask, num_classes, eps=1e-6):
     """
     Вычисляет средний IoU по всем классам (mIoU).

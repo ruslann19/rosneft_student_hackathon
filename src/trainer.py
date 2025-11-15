@@ -10,6 +10,8 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 
+from src.dataset import CLASS_TO_GRAY
+
 
 class Trainer:
     def __init__(
@@ -47,6 +49,10 @@ class Trainer:
         self.train_metrics = []
         self.val_metrics = []
 
+        self.reverse_lookup = np.zeros(256, dtype=np.int64)
+        for gray, cls in CLASS_TO_GRAY.items():
+            self.reverse_lookup[cls] = gray  # индекс класса -> градация серого
+
     def _setup_logger(self):
         logger = logging.getLogger("Trainer")
         logger.setLevel(logging.INFO)
@@ -70,7 +76,10 @@ class Trainer:
             self.optimizer.step()
 
             total_loss += loss.item()
-            total_metrics += self.metrics(outputs, masks, self.num_classes)
+
+            preds = torch.argmax(outputs, dim=1).cpu().numpy()
+            masks = masks.cpu().numpy()
+            total_metrics += self.metrics(preds, masks, self.num_classes)
 
         avg_loss = total_loss / len(self.train_loader)
         avg_metrics = total_metrics / len(self.train_loader)
@@ -85,9 +94,11 @@ class Trainer:
             images, masks = images.to(self.device), masks.to(self.device)
             outputs = self.model(images)
             loss = self.criterion(outputs, masks)
-
             total_loss += loss.item()
-            total_metrics += self.metrics(outputs, masks, self.num_classes)
+
+            preds = torch.argmax(outputs, dim=1).cpu().numpy()
+            masks = masks.cpu().numpy()
+            total_metrics += self.metrics(preds, masks, self.num_classes)
 
         avg_loss = total_loss / len(self.val_loader)
         avg_metrics = total_metrics / len(self.val_loader)
@@ -118,15 +129,18 @@ class Trainer:
             mask = masks[i].cpu().numpy()
             pred = preds[i]
 
+            masks = self.reverse_lookup[masks]
+            preds = self.reverse_lookup[preds]
+
             axes[i, 0].imshow(img)
             axes[i, 0].set_title("Image")
             axes[i, 0].axis("off")
 
-            axes[i, 1].imshow(mask, cmap="tab20", vmin=0, vmax=self.num_classes - 1)
+            axes[i, 1].imshow(mask, cmap="gray", vmin=0, vmax=self.num_classes - 1)
             axes[i, 1].set_title("True Mask")
             axes[i, 1].axis("off")
 
-            axes[i, 2].imshow(pred, cmap="tab20", vmin=0, vmax=self.num_classes - 1)
+            axes[i, 2].imshow(pred, cmap="gray", vmin=0, vmax=self.num_classes - 1)
             axes[i, 2].set_title("Pred Mask")
             axes[i, 2].axis("off")
 
