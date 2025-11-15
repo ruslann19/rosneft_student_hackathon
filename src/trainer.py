@@ -50,7 +50,7 @@ class Trainer:
         self.val_metrics = []
 
         self.reverse_lookup = np.zeros(256, dtype=np.int64)
-        for gray, cls in CLASS_TO_GRAY.items():
+        for cls, gray in CLASS_TO_GRAY.items():
             self.reverse_lookup[cls] = gray  # индекс класса -> градация серого
 
     def _setup_logger(self):
@@ -122,25 +122,26 @@ class Trainer:
             outputs = self.model(images)
             preds = torch.argmax(outputs, dim=1).cpu().numpy()
 
-        fig, axes = plt.subplots(examples_count, 3, figsize=(12, 16))
-        axes = axes.reshape(1, -1)
+        columns_count = 3
+        fig, axes = plt.subplots(examples_count, columns_count, figsize=(12, 16))
+        axes = axes.reshape(examples_count, columns_count)
         for i in range(examples_count):
             img = images[i].cpu().permute(1, 2, 0).numpy()
             mask = masks[i].cpu().numpy()
             pred = preds[i]
 
-            masks = self.reverse_lookup[masks]
-            preds = self.reverse_lookup[preds]
+            mask = self.reverse_lookup[mask]
+            pred = self.reverse_lookup[pred]
 
             axes[i, 0].imshow(img)
             axes[i, 0].set_title("Image")
             axes[i, 0].axis("off")
 
-            axes[i, 1].imshow(mask, cmap="gray", vmin=0, vmax=self.num_classes - 1)
+            axes[i, 1].imshow(mask, cmap="gray", vmin=0, vmax=255)
             axes[i, 1].set_title("True Mask")
             axes[i, 1].axis("off")
 
-            axes[i, 2].imshow(pred, cmap="gray", vmin=0, vmax=self.num_classes - 1)
+            axes[i, 2].imshow(pred, cmap="gray", vmin=0, vmax=255)
             axes[i, 2].set_title("Pred Mask")
             axes[i, 2].axis("off")
 
