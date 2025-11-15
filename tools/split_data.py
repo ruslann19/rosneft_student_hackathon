@@ -101,7 +101,7 @@ def main():
         "--images_dir", type=str, default="data/images", help="Папка с изображениями"
     )
     parser.add_argument(
-        "--maskes_dir", type=str, default="data/maskes", help="Папка с масками"
+        "--masks_dir", type=str, default="data/masks", help="Папка с масками"
     )
     parser.add_argument("--train_size", type=int, help="Количество изображений в train")
     parser.add_argument("--val_size", type=int, help="Количество изображений в val")
@@ -119,10 +119,11 @@ def main():
     )
 
     args = parser.parse_args()
+    print(args)
 
     split_data(
         images_dir=args.images_dir,
-        maskes_dir=args.maskes_dir,
+        maskes_dir=args.masks_dir,
         train_size=args.train_size,
         val_size=args.val_size,
         val_ratio=args.val_ratio,

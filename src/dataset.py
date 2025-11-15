@@ -1,6 +1,5 @@
 from pathlib import Path
 
-# import torchvision.transforms as transforms
 import numpy as np
 import torch
 from PIL import Image
@@ -93,30 +92,65 @@ CLASS_TO_GRAY = {
     39: 215,
 }
 
+LOOKUP = np.zeros(256, dtype=np.int64)
+for gray, cls in GRAY_TO_CLASS.items():
+    if 0 <= gray < 256:
+        LOOKUP[gray] = cls
+
+
+REVERSE_LOOKUP = np.zeros(256, dtype=np.int64)
+for cls, gray in CLASS_TO_GRAY.items():
+    REVERSE_LOOKUP[cls] = gray  # индекс класса -> градация серого
+
+
+def load_image(img_path: str) -> Image:
+    img = Image.open(img_path)
+    return img
+
+
+def transform_image(img: Image) -> torch.Tensor:
+    img = np.array(img.convert("RGB"))
+    img = torch.from_numpy(img).permute(2, 0, 1).float()
+    img /= 255.0
+    x = img
+    return x
+
+
+def transform_mask(mask: Image) -> torch.Tensor:
+    mask_gray = np.array(mask.convert("L"))
+    mask_idx = LOOKUP[mask_gray]  # gray scales -> classes indices
+    mask = torch.from_numpy(mask_idx).long()
+    y = mask
+    return y
+
 
 class SegmentationDataset(Dataset):
-    def __init__(self, img_dir, mask_dir):
+    def __init__(self, mode: str, img_dir: str, mask_dir: str = None) -> None:
+        if mode not in ["train", "test"]:
+            raise ValueError("Mode must be 'train' or 'test'")
+
+        self.mode = mode
+
         key = lambda p: int(p.stem)
         self.img_paths = sorted(Path(img_dir).glob("*"), key=key)
-        self.mask_paths = sorted(Path(mask_dir).glob("*"), key=key)
-
-        self.lookup = np.zeros(256, dtype=np.int64)
-        for gray, cls in GRAY_TO_CLASS.items():
-            if 0 <= gray < 256:
-                self.lookup[gray] = cls
+        if mask_dir is not None:
+            self.mask_paths = sorted(Path(mask_dir).glob("*"), key=key)
 
     def __len__(self):
         return len(self.img_paths)
 
     def __getitem__(self, i):
-        img = np.array(Image.open(self.img_paths[i]).convert("RGB"))
-        img = torch.from_numpy(img).permute(2, 0, 1).float()
-        img /= 255.0
-        x = img
+        img = load_image(img_path=self.img_paths[i])
+        x = transform_image(img=img)
 
-        mask_gray = np.array(Image.open(self.mask_paths[i]).convert("L"))
-        mask_idx = self.lookup[mask_gray]
-        mask = torch.from_numpy(mask_idx).long()
-        y = mask
+        match self.mode:
+            case "test":
+                return x
 
-        return x, y
+            case "train":
+                mask_gray = load_image(img_path=self.mask_paths[i])
+                y = transform_mask(mask=mask_gray)
+                return x, y
+
+            case _:
+                raise ValueError("Mode must be 'train' or 'test'")

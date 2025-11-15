@@ -24,15 +24,19 @@ def train(split_dir: str) -> None:
     print(f"split_dir: {split_dir}")
 
     train_img_path = f"data/{split_dir}/train/images"
-    train_mask_path = f"data/{split_dir}/train/maskes"
+    train_mask_path = f"data/{split_dir}/train/masks"
 
     val_img_path = f"data/{split_dir}/val/images"
-    val_mask_path = f"data/{split_dir}/val/maskes"
+    val_mask_path = f"data/{split_dir}/val/masks"
+
+    dataset_mode = "train"
 
     train_dataset = SegmentationDataset(
-        img_dir=train_img_path, mask_dir=train_mask_path
+        img_dir=train_img_path, mask_dir=train_mask_path, mode=dataset_mode
     )
-    val_dataset = SegmentationDataset(img_dir=val_img_path, mask_dir=val_mask_path)
+    val_dataset = SegmentationDataset(
+        img_dir=val_img_path, mask_dir=val_mask_path, mode=dataset_mode
+    )
 
     batch_size = 2
     train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size)

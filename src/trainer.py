@@ -11,7 +11,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 
-from src.dataset import CLASS_TO_GRAY
+from src.dataset import REVERSE_LOOKUP
 
 
 def set_seed(seed):
@@ -65,9 +65,9 @@ class Trainer:
         self.train_metrics = []
         self.val_metrics = []
 
-        self.reverse_lookup = np.zeros(256, dtype=np.int64)
-        for cls, gray in CLASS_TO_GRAY.items():
-            self.reverse_lookup[cls] = gray  # индекс класса -> градация серого
+        # self.reverse_lookup = np.zeros(256, dtype=np.int64)
+        # for cls, gray in CLASS_TO_GRAY.items():
+        #     self.reverse_lookup[cls] = gray  # индекс класса -> градация серого
 
     def _setup_logger(self):
         logger = logging.getLogger("Trainer")
@@ -146,8 +146,8 @@ class Trainer:
             mask = masks[i].cpu().numpy()
             pred = preds[i]
 
-            mask = self.reverse_lookup[mask]
-            pred = self.reverse_lookup[pred]
+            mask = REVERSE_LOOKUP[mask]
+            pred = REVERSE_LOOKUP[pred]
 
             axes[i, 0].imshow(img)
             axes[i, 0].set_title("Image")
