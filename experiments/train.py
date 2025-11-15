@@ -15,6 +15,7 @@ from torch.utils.data import DataLoader
 
 from src.dataset import SegmentationDataset
 from src.dice_loss import DiceLoss
+from src.iou import compute_miou
 from src.trainer import Trainer
 from src.unet import UNet
 
@@ -51,8 +52,11 @@ def train(split_dir: str) -> None:
         model=model,
         train_loader=train_loader,
         val_loader=val_loader,
-        criterion=DiceLoss(),
+        metrics=compute_miou,
+        criterion=DiceLoss(num_classes=40),
         optimizer=optimizer,
+        num_classes=40,
+        device="cuda" if torch.cuda.is_available() else "cpu",
     )
 
     best_loss = trainer.train(epochs=50)

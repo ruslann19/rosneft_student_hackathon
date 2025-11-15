@@ -6,7 +6,9 @@
 
 # --- Настройки ---
 PYTHON := python3
-CHECKPOINT_DIR := checkpoints
+CHECKPOINTS_DIR := checkpoints
+LOGS_GIR := logs
+
 
 ZIP_FILE := data.zip
 DATA_DIR := data
@@ -48,9 +50,9 @@ split_data:
 # make train SPLIT_DIR=splits_80_20
 train:
 	@echo "🚀 Запуск обучения..."
-	@mkdir -p $(CHECKPOINT_DIR)
+	@mkdir -p $(CHECKPOINTS_DIR)
 	@$(PYTHON) experiments/train.py --split_dir "$(SPLIT_DIR)"
-	@echo "✅ Обучение завершено. Веса: $(CHECKPOINT_DIR)"
+	@echo "✅ Обучение завершено. Веса: $(CHECKPOINTS_DIR)"
 
 ## Очистить производные данные (сохранить исходные)
 clean:
@@ -63,9 +65,14 @@ clean:
 		fi; \
 	done
 
-	@if [ -d $(CHECKPOINT_DIR) ]; then \
-		echo "Удаление $(CHECKPOINT_DIR)..."; \
-		rm -rf $(CHECKPOINT_DIR); \
+	@if [ -d $(CHECKPOINTS_DIR) ]; then \
+		echo "Удаление $(CHECKPOINTS_DIR)..."; \
+		rm -rf $(CHECKPOINTS_DIR); \
+	fi
+
+	@if [ -d $(LOGS_GIR) ]; then \
+		echo "Удаление $(LOGS_GIR)..."; \
+		rm -rf $(LOGS_GIR); \
 	fi
 
 	@echo "✅ Временные файлы удалены"

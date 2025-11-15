@@ -17,12 +17,12 @@ pip install -r requirements.txt
 ### 2. Загрузка и подготовка данных
 ```bash
 # Скачать данные из облака и разделить на train/val
-make data
-make split
+make download_data
+make split_data SPLIT_DIR=splits_80_20 TRAIN_SIZE=80 VAL_SIZE=20
 ```
 
 ### 3. Обучение модели
 ```bash
 # Запустить обучение
-make train
+make train SPLIT_DIR=splits_80_20
 ```
