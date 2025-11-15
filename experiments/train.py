@@ -16,13 +16,12 @@ from torch.utils.data import DataLoader
 from src.dataset import SegmentationDataset
 from src.dice_loss import DiceLoss
 from src.iou import compute_miou
+from src.models import SegNet, UNet
 from src.trainer import Trainer
-from src.unet import UNet
 
 
 def train(split_dir: str) -> None:
     print(f"split_dir: {split_dir}")
-    # assert False
 
     train_img_path = f"data/{split_dir}/train/images"
     train_mask_path = f"data/{split_dir}/train/maskes"
@@ -39,10 +38,15 @@ def train(split_dir: str) -> None:
     train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size)
     val_loader = DataLoader(dataset=val_dataset, batch_size=batch_size)
 
+    # model = UNet(
+    #     in_channels=3,
+    #     out_channels=40,
+    #     base_channels=32,
+    # )
+
     model = UNet(
         in_channels=3,
         out_channels=40,
-        base_channels=32,
     )
 
     params = [p for p in model.parameters() if p.requires_grad]
