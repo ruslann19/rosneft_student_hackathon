@@ -61,6 +61,7 @@ def train(split_dir: str) -> None:
         optimizer=optimizer,
         num_classes=40,
         device="cuda" if torch.cuda.is_available() else "cpu",
+        seed=42,
     )
 
     best_loss = trainer.train(epochs=50)

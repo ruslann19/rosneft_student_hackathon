@@ -1,5 +1,6 @@
 import logging
 import os
+import random
 from datetime import datetime
 from typing import Callable
 
@@ -13,6 +14,17 @@ from tqdm.auto import tqdm
 from src.dataset import CLASS_TO_GRAY
 
 
+def set_seed(seed):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)  # для GPU
+    torch.cuda.manual_seed_all(seed)  # для многопроцессорности на GPU
+    np.random.seed(seed)
+    random.seed(seed)
+    # Для DataLoader
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
 class Trainer:
     def __init__(
         self,
@@ -24,6 +36,7 @@ class Trainer:
         optimizer,
         num_classes: int,
         device: str,
+        seed: int,
         log_dir="logs",
         save_dir="checkpoints",
     ):
@@ -36,6 +49,9 @@ class Trainer:
         # self.scheduler = scheduler
         self.num_classes = num_classes
         self.device = device
+
+        if seed is not None:
+            set_seed(seed)
 
         self.log_dir = log_dir
         self.save_dir = save_dir
