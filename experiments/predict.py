@@ -27,6 +27,7 @@ from src.models import UNet
 def predict(model, x) -> np.ndarray:
     outputs = model(x)
     preds = torch.argmax(outputs, dim=1).cpu().numpy()
+
     return preds
 
 
@@ -51,7 +52,7 @@ def main():
         out_channels=40,
     )
 
-    checkpoint_path = "saved_models/checkpoint_epoch_11_saved.pth"
+    checkpoint_path = "saved_models/checkpoint_epoch_9_Andresys03.pth"
     checkpoint = torch.load(
         f=checkpoint_path, map_location="cpu", weights_only=False
     )  # или 'cuda' если GPU
@@ -76,7 +77,13 @@ def main():
     batch_size = 2
     test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size)
 
-    os.makedirs("predictions", exist_ok=True)
+    results_dir = "results"
+    predicted_masks_dir = f"{results_dir}/predict_target"
+    visualization_dir = f"{results_dir}/visualization"
+
+    os.makedirs(results_dir, exist_ok=True)
+    os.makedirs(predicted_masks_dir, exist_ok=True)
+    os.makedirs(visualization_dir, exist_ok=True)
 
     for i, x in enumerate(tqdm(test_loader, desc="Testing", leave=False)):
         # print("x.shape:", x.shape)
@@ -93,15 +100,18 @@ def main():
 
         batch_size = len(x)
         for j in range(batch_size):
+            img = x[j].cpu().permute(1, 2, 0).numpy()
+            pred = preds[j]
+            pred = REVERSE_LOOKUP[pred]
+            pred = pred.clip(0, 255).astype(np.uint8)
+
+            cv2.imwrite(filename=f"{predicted_masks_dir}/{i + j}.png", img=pred)
+
             columns_count = 2
             examples_count = 1
             fig, axes = plt.subplots(examples_count, columns_count, figsize=(12, 16))
             axes = axes.reshape(examples_count, columns_count)
             for k in range(examples_count):
-                img = x[j].cpu().permute(1, 2, 0).numpy()
-                pred = preds[j]
-
-                pred = REVERSE_LOOKUP[pred]
 
                 axes[k, 0].imshow(img)
                 axes[k, 0].set_title("Image")
@@ -112,7 +122,7 @@ def main():
                 axes[k, 1].axis("off")
 
             plt.tight_layout()
-            plt.savefig(os.path.join("predictions", f"prediction_{i + j}.png"))
+            plt.savefig(f"{visualization_dir}/{i + j}.png")
             plt.close()
 
 

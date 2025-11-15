@@ -218,5 +218,5 @@ __marimo__/
 data/
 checkpoints/
 logs/
-predictions/
+results/
 saved_models/
