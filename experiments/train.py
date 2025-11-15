@@ -1,3 +1,4 @@
+import argparse
 import sys
 from pathlib import Path
 
@@ -17,34 +18,59 @@ from src.dice_loss import DiceLoss
 from src.trainer import Trainer
 from src.unet import UNet
 
-train_img_path = "data/splits/train/input"
-train_mask_path = "data/splits/train/target"
 
-val_img_path = "data/splits/val/input"
-val_mask_path = "data/splits/val/target"
+def train(split_dir: str) -> None:
+    print(f"split_dir: {split_dir}")
+    # assert False
 
-train_dataset = SegmentationDataset(img_dir=train_img_path, mask_dir=train_mask_path)
-val_dataset = SegmentationDataset(img_dir=val_img_path, mask_dir=val_mask_path)
+    train_img_path = f"data/{split_dir}/train/images"
+    train_mask_path = f"data/{split_dir}/train/maskes"
 
-batch_size = 2
-train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size)
-val_loader = DataLoader(dataset=val_dataset, batch_size=batch_size)
+    val_img_path = f"data/{split_dir}/val/images"
+    val_mask_path = f"data/{split_dir}/val/maskes"
 
-model = UNet(
-    in_channels=3,
-    out_channels=40,
-    base_channels=32,
-)
+    train_dataset = SegmentationDataset(
+        img_dir=train_img_path, mask_dir=train_mask_path
+    )
+    val_dataset = SegmentationDataset(img_dir=val_img_path, mask_dir=val_mask_path)
 
-params = [p for p in model.parameters() if p.requires_grad]
-optimizer = torch.optim.AdamW(params, 1e-4)
+    batch_size = 2
+    train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size)
+    val_loader = DataLoader(dataset=val_dataset, batch_size=batch_size)
 
-trainer = Trainer(
-    model=model,
-    train_loader=train_loader,
-    val_loader=val_loader,
-    criterion=DiceLoss(),
-    optimizer=optimizer,
-)
+    model = UNet(
+        in_channels=3,
+        out_channels=40,
+        base_channels=32,
+    )
 
-best_loss = trainer.train(epochs=50)
+    params = [p for p in model.parameters() if p.requires_grad]
+    optimizer = torch.optim.AdamW(params, 1e-4)
+
+    trainer = Trainer(
+        model=model,
+        train_loader=train_loader,
+        val_loader=val_loader,
+        criterion=DiceLoss(),
+        optimizer=optimizer,
+    )
+
+    best_loss = trainer.train(epochs=50)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Обучение модели")
+    parser.add_argument(
+        "--split_dir",
+        type=str,
+        default="splits",
+        help="Папка с разделением на train/val",
+    )
+
+    args = parser.parse_args()
+
+    train(split_dir=args.split_dir)
+
+
+if __name__ == "__main__":
+    main()
