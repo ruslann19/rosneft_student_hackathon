@@ -27,9 +27,9 @@ MODEL_NAME ?=
 ## Загрузить данные из облака
 download_data:
 	@echo "📥 Скачивание данных..."
-# 	@$(PYTHON) tools/download_data.py \
-# 		--data_file $(DATA_FILE) \
-# 		--predict_data_file $(PREDICT_DATA_FILE)
+	@$(PYTHON) tools/download_data.py \
+		--data_file $(DATA_FILE) \
+		--predict_data_file $(PREDICT_DATA_FILE)
 	
 	@echo "Распаковка..."
 	@unzip -q $(DATA_FILE) -d $(DATA_DIR)
