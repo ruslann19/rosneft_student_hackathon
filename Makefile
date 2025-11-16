@@ -10,13 +10,16 @@ CHECKPOINTS_DIR := checkpoints
 LOGS_GIR := logs
 
 
-ZIP_FILE := data.zip
+DATA_FILE := data.zip
 DATA_DIR := data
+PREDICT_DATA_FILE := predict_data.zip
+PREDICT_DATA_DIR := predict_images
 IMAGES_DIR := images
 MASKES_DIR := masks
 SPLIT_DIR ?= splits
 TRAIN_SIZE ?= 
 VAL_SIZE ?= 
+MODEL_NAME ?= 
 
 
 # --- Цели ---
@@ -24,15 +27,21 @@ VAL_SIZE ?=
 ## Загрузить данные из облака
 download_data:
 	@echo "📥 Скачивание данных..."
-	@$(PYTHON) tools/download_data.py --zip_file $(ZIP_FILE)
+# 	@$(PYTHON) tools/download_data.py \
+# 		--data_file $(DATA_FILE) \
+# 		--predict_data_file $(PREDICT_DATA_FILE)
 	
 	@echo "Распаковка..."
-	@unzip -q $(ZIP_FILE) -d $(DATA_DIR)
+	@unzip -q $(DATA_FILE) -d $(DATA_DIR)
 
-	@rm $(ZIP_FILE)
+	@unzip -q $(PREDICT_DATA_FILE) -d $(PREDICT_DATA_DIR)
+	@mv $(PREDICT_DATA_DIR)/predict_input $(DATA_DIR)/$(PREDICT_DATA_DIR)
 
 	@mv $(DATA_DIR)/input $(DATA_DIR)/$(IMAGES_DIR)
 	@mv $(DATA_DIR)/target $(DATA_DIR)/$(MASKES_DIR)
+
+# 	@rm $(DATA_FILE)
+# 	@rm $(PREDICT_DATA_FILE)
 	
 	@echo "✅ Данные сохранены в $(DATA_DIR)"
 
@@ -51,8 +60,19 @@ split_data:
 train:
 	@echo "🚀 Запуск обучения..."
 	@mkdir -p $(CHECKPOINTS_DIR)
-	@$(PYTHON) experiments/train.py --split_dir "$(SPLIT_DIR)"
+	@$(PYTHON) experiments/train.py \
+		--split_dir "$(SPLIT_DIR)"
 	@echo "✅ Обучение завершено. Веса: $(CHECKPOINTS_DIR)"
+
+# Сделать предсказание на тестовых данных
+predict:
+	@echo "🚀 Запуск обучения..."
+	@$(PYTHON) experiments/predict.py \
+		--predict_dir "$(PREDICT_DATA_DIR)" \
+		--model_name "$(MODEL_NAME)"
+
+	@cd results && zip -q predict_target.zip predict_target/*.png && cd ..
+	@echo "✅ Прогнозирование завершено."
 
 ## Очистить производные данные (сохранить исходные)
 clean_splits:

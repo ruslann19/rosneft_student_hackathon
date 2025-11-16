@@ -1,4 +1,3 @@
-import argparse
 import sys
 from pathlib import Path
 
@@ -9,6 +8,8 @@ if src_path not in sys.path:
     print(f"Добавлен путь: {src_path}")
 else:
     print(f"Путь уже в sys.path: {src_path}")
+
+import argparse
 
 import torch
 from torch.utils.data import DataLoader

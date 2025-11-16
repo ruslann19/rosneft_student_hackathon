@@ -26,3 +26,10 @@ make split_data SPLIT_DIR=splits_80_20 TRAIN_SIZE=80 VAL_SIZE=20
 # Запустить обучение
 make train SPLIT_DIR=splits_80_20
 ```
+
+### 4. Предсказание на тестовых данных
+Нужно создать папку `saved_models` и положить туда обученную модель (например, `checkpoint_epoch_5.pth`). Затем нужно указать эту модель для прогнозирования.
+```bash
+# Запустить прогнозирование
+make predict MODEL_NAME=checkpoint_epoch_5
+```

@@ -9,6 +9,7 @@ if src_path not in sys.path:
 else:
     print(f"Путь уже в sys.path: {src_path}")
 
+import argparse
 import os
 from typing import Tuple
 
@@ -46,20 +47,20 @@ def resize_up(masks: np.ndarray, new_size: Tuple[int, int]) -> np.ndarray:
     return resized_masks_np
 
 
-def main():
+def run_prediction(predict_dir: str, model_name: str) -> None:
     model = UNet(
         in_channels=3,
         out_channels=40,
     )
 
-    checkpoint_path = "saved_models/checkpoint_epoch_9_Andresys03.pth"
+    checkpoint_path = f"saved_models/{model_name}.pth"
     checkpoint = torch.load(
         f=checkpoint_path, map_location="cpu", weights_only=False
     )  # или 'cuda' если GPU
     model.load_state_dict(checkpoint["model_state_dict"])
 
     dataset_mode = "test"
-    test_img_path = f"data/predict_input"
+    test_img_path = f"data/{predict_dir}"
 
     test_dataset = SegmentationDataset(
         mode=dataset_mode,
@@ -74,7 +75,7 @@ def main():
     # print("source_shape:", source_shape)
     # print("working_shape:", working_shape)
 
-    batch_size = 2
+    batch_size = 1
     test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size)
 
     results_dir = "results"
@@ -124,6 +125,25 @@ def main():
             plt.tight_layout()
             plt.savefig(f"{visualization_dir}/{i + j}.png")
             plt.close()
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Обучение модели")
+    parser.add_argument(
+        "--predict_dir",
+        type=str,
+        default="predict_images",
+        help="Папка с тестовыми данными",
+    )
+    parser.add_argument(
+        "--model_name",
+        type=str,
+        help="Название файла, в котором сохранени обученная модель",
+    )
+
+    args = parser.parse_args()
+
+    run_prediction(predict_dir=args.predict_dir, model_name=args.model_name)
 
 
 if __name__ == "__main__":

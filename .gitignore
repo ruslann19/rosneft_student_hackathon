@@ -215,7 +215,8 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-data/
+data*
+predict_data*
 checkpoints/
 logs/
 results/
